@@ -101,13 +101,41 @@
   .pill:hover:not(.on) { background: var(--surface); }
   .pill.on { background: var(--blue); color: #fff; border-color: var(--blue); }
   .pill.on-green { background: var(--green); color: #fff; border-color: var(--green); }
-  select.native {
-    width: 100%; padding: 9px 32px 9px 12px; border: 1px solid var(--border);
-    border-radius: var(--radius); background: var(--white); color: var(--ink);
-    font-size: 14px; cursor: pointer; appearance: none; font-family: var(--sans);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7a9a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 12px center;
+  .state-select { position: relative; width: 100%; }
+  .state-select-trigger {
+    width: 100%; min-height: 40px; padding: 9px 38px 9px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--white); color: var(--ink); font-size: 14px;
+    cursor: pointer; font-family: var(--sans); text-align: left;
+    position: relative; transition: border-color .15s, box-shadow .15s;
   }
+  .state-select-trigger:hover, .state-select.open .state-select-trigger {
+    border-color: var(--blue);
+  }
+  .state-select.open .state-select-trigger {
+    box-shadow: 0 0 0 3px rgba(26,79,160,.08);
+  }
+  .state-select-trigger .ti {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    transition: transform .15s; color: var(--ink-soft);
+  }
+  .state-select.open .state-select-trigger .ti { transform: translateY(-50%) rotate(180deg); }
+  .state-select-menu {
+    position: absolute; left: 0; right: 0; top: calc(100% + 5px); z-index: 50;
+    max-height: 280px; overflow-y: auto; padding: 5px;
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: 0 10px 28px rgba(22,28,45,.14);
+    display: none;
+  }
+  .state-select.open .state-select-menu { display: block; }
+  .state-option {
+    display: block; width: 100%; border: 0; background: transparent;
+    color: var(--ink); text-align: left; padding: 9px 10px;
+    border-radius: 6px; font: 14px var(--sans); cursor: pointer;
+  }
+  .state-option:hover { background: var(--surface); }
+  .state-option.selected { background: rgba(26,79,160,.09); color: var(--blue); font-weight: 600; }
+  .state-option .check { float: right; font-weight: 700; }
   .cnt-row { display: flex; align-items: center; gap: 14px; }
   .cnt-btn {
     width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
@@ -419,23 +447,6 @@ h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,
   </div>
 </section>
 
-<!-- ============ GITHUB INSTRUCTIONS ============ -->
-<section class="section" id="githubSection">
-  <div class="github-section">
-    <h3>🚀 How to host this on GitHub Pages — free, in under 5 minutes</h3>
-    <p>This file is fully self-contained HTML — no server, no build step. GitHub Pages will serve it as a live website.</p>
-    <ol class="step-list">
-      <li>Go to <a href="https://github.com" target="_blank" style="color:#7eb8f7">github.com</a> and sign in (or create a free account).</li>
-      <li>Click the <code>+</code> icon (top right) → <strong>New repository</strong>. Name it anything, e.g. <code>education-calculator</code>. Set it to <strong>Public</strong>. Click <strong>Create repository</strong>.</li>
-      <li>Inside the repo, click <strong>Add file → Create new file</strong>. Name it exactly <code>index.html</code>.</li>
-      <li>Download this calculator file using the button below, open it in any text editor (Notepad, TextEdit), select all, copy, and paste it into the GitHub editor.</li>
-      <li>Scroll down, click <strong>Commit changes</strong>.</li>
-      <li>Go to <strong>Settings → Pages</strong> (left sidebar). Under <em>Branch</em>, select <code>main</code> and click <strong>Save</strong>.</li>
-      <li>Wait about 60 seconds. Your site is now live at <code>https://yourusername.github.io/education-calculator</code></li>
-    </ol>
-    <button class="dl-btn" onclick="downloadHTML()">⬇ Download this calculator as index.html</button>
-  </div>
-</section>
 </div>
 
 <footer>
@@ -550,11 +561,19 @@ function renderSteps(){
 window.toggleStep=function(i){openStep=openStep===i?-1:i;renderSteps();}
 
 function renderBody(i){
-  if(i===0) return `<div class="q-label">Choose your state or UT</div>
-    <div class="sel-wrap"><select onchange="S.state=this.value;advance(1)">
-      <option value="">Select…</option>
-      ${STATES.map(s=>`<option value="${s}"${S.state===s?" selected":""}>${s==="all-India"?"🇮🇳 All India":s}</option>`).join("")}
-    </select><i class="ti ti-chevron-down" aria-hidden="true"></i></div>`;
+  if(i===0) {
+    const selectedLabel=S.state? (S.state==="all-India"?"🇮🇳 All India":S.state) : "Select…";
+    return `<div class="q-label">Choose your state or UT</div>
+      <div class="state-select" id="stateSelect">
+        <button type="button" class="state-select-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="toggleStateMenu(event)">
+          ${selectedLabel}<i class="ti ti-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="state-select-menu" role="listbox" aria-label="Select state or UT">
+          <button type="button" class="state-option${!S.state?" selected":""}" onclick="chooseState('')">Select…${!S.state?'<span class=\"check\">✓</span>':''}</button>
+          ${STATES.map(s=>{const label=s==="all-India"?"🇮🇳 All India":s; const sel=S.state===s; return `<button type="button" class="state-option${sel?" selected":""}" role="option" aria-selected="${sel}" onclick="chooseState(${JSON.stringify(s)})">${label}${sel?'<span class=\"check\">✓</span>':''}</button>`}).join("")}
+        </div>
+      </div>`;
+  }
 
   if(i===1) return `<div class="q-label">Area</div>
     <div class="opt-row">
@@ -607,6 +626,36 @@ function renderBody(i){
 
   return "";
 }
+
+window.toggleStateMenu=function(e){
+  if(e) e.stopPropagation();
+  const el=document.getElementById("stateSelect");
+  if(!el) return;
+  const open=el.classList.toggle("open");
+  const trigger=el.querySelector(".state-select-trigger");
+  if(trigger) trigger.setAttribute("aria-expanded",open?"true":"false");
+};
+
+window.chooseState=function(value){
+  S.state=value||null;
+  document.body.click();
+  if(S.state) advance(1);
+  else renderSteps();
+};
+
+document.addEventListener("click",function(e){
+  const el=document.getElementById("stateSelect");
+  if(el && !el.contains(e.target)) {
+    el.classList.remove("open");
+    const trigger=el.querySelector(".state-select-trigger");
+    if(trigger) trigger.setAttribute("aria-expanded","false");
+  }
+});
+document.addEventListener("keydown",function(e){
+  if(e.key!=="Escape") return;
+  const el=document.getElementById("stateSelect");
+  if(el){ el.classList.remove("open"); const trigger=el.querySelector(".state-select-trigger"); if(trigger) trigger.setAttribute("aria-expanded","false"); }
+});
 
 function renderChildCards(){
   return S.children.map((c,i)=>`

@@ -4,175 +4,240 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cost of Education in India — Calculator</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Google Fonts and Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
 <style>
-  /* ---- RESET & BASE ---- */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --ink:       #1a1a2e;
-    --ink-mid:   #3d3d5c;
-    --ink-soft:  #7a7a9a;
-    --blue:      #1a4fa0;
-    --blue-lt:   #e8f0fc;
-    --green:     #1a7a4a;
-    --amber:     #b86000;
-    --red:       #b02020;
-    --border:    #dde3f0;
-    --surface:   #f6f8ff;
-    --white:     #ffffff;
-    --radius:    10px;
-    --sans:      system-ui, -apple-system, "Segoe UI", sans-serif;
-    --mono:      "JetBrains Mono", "Fira Mono", monospace;
-  }
-  html { scroll-behavior: smooth; }
-  body { font-family: var(--sans); color: var(--ink); background: var(--white); line-height: 1.55; }
+/* CSS FROM YOUR V7 FILE */
+:root {
+    --color-border-tertiary: #dde3f0;
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f6f8ff;
+    --color-text-primary: #1a1a2e;
+    --color-text-secondary: #3d3d5c;
+    --color-text-tertiary: #7a7a9a;
+    --border-radius-lg: 12px;
+    --border-radius-md: 8px;
+    --font-sans: system-ui, -apple-system, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary);background:#fff}
 
-  /* ---- HERO / PARALLAX PANELS ---- */
-  .hero {
-    position: relative; height: 100vh; min-height: 500px; max-height: 780px;
-    display: flex; align-items: flex-end; overflow: hidden; background: var(--ink);
-  }
-  .hero-bg {
-    position: absolute; inset: 0; background-size: cover; background-position: center;
-    transition: opacity 1s ease; will-change: transform;
-    background-image: url('https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
-  }
-  .hero-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(10,10,30,.82) 40%, rgba(10,10,30,.2) 100%);
-  }
-  .hero-content { position: relative; z-index: 2; padding: 0 5vw 56px; max-width: 780px; }
-  .hero-eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.65); margin-bottom: 14px; }
-  .hero-title { font-size: clamp(28px,5vw,52px); font-weight: 700; color: #fff; line-height: 1.12; margin-bottom: 16px; }
-  .hero-title span { color: #7eb8f7; }
-  .hero-sub { font-size: 15px; color: rgba(255,255,255,.78); max-width: 520px; line-height: 1.65; }
-  
-  /* ---- LAYOUT ---- */
-  .page { max-width: 1100px; margin: 0 auto; padding: 0 5vw; }
-  .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 32px; align-items: start; }
-  @media(max-width:860px){ .two-col{ grid-template-columns:1fr; } }
+/* HERO SECTION */
+.hero {
+    height: 100vh; min-height: 500px;
+    background: #1a1a2e;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; color: #fff; padding: 20px;
+}
+.hero-title { font-size: clamp(32px, 5vw, 52px); font-weight: 800; margin-bottom: 15px; }
+.hero-title span { color: #7eb8f7; }
+.hero-sub { max-width: 600px; opacity: 0.8; font-size: 16px; margin: 0 auto; }
 
-  /* ---- SECTION HEADERS ---- */
-  .section { padding: 64px 0 40px; }
-  .section-label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--blue); font-weight: 600; margin-bottom: 8px; }
-  .section-title { font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--ink); margin-bottom: 6px; }
-  .section-sub { font-size: 14px; color: var(--ink-soft); max-width: 580px; }
-
-  /* ---- STEPS ---- */
-  .step-wrap { display: flex; flex-direction: column; gap: 10px; }
-  .step { border: 1px solid var(--border); border-radius: var(--radius); background: var(--white); overflow: hidden; transition: box-shadow .2s; }
-  .step.open { box-shadow: 0 4px 20px rgba(26,79,160,.1); }
-  .step-head { display: flex; align-items: center; gap: 13px; padding: 14px 18px; cursor: pointer; user-select: none; }
-  .step-head:hover { background: var(--surface); }
-  .step-num { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: var(--border); color: var(--ink-soft); transition: all .2s; }
-  .step-num.done { background: var(--blue); color: #fff; }
-  .step-title-txt { font-size: 14px; font-weight: 600; color: var(--ink); flex: 1; }
-  .step-summary { font-size: 12px; color: var(--ink-soft); }
-  .step-chevron { color: var(--ink-soft); font-size: 18px; transition: transform .2s; }
-  .step-chevron.open { transform: rotate(180deg); }
-  .step-body { padding: 0 18px 18px; display: none; }
-  .step-body.open { display: block; }
-
-  /* ---- FORM ELEMENTS ---- */
-  .q-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); margin: 14px 0 8px; }
-  .pill-row { display: flex; flex-wrap: wrap; gap: 7px; }
-  .pill { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 13px; cursor: pointer; background: var(--white); color: var(--ink); font-family: var(--sans); transition: all .15s; }
-  .pill:hover:not(.on) { background: var(--surface); }
-  .pill.on { background: var(--blue); color: #fff; border-color: var(--blue); }
-  select.native { width: 100%; padding: 9px 32px 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--white); color: var(--ink); font-size: 14px; cursor: pointer; appearance: none; font-family: var(--sans); }
-  .cnt-row { display: flex; align-items: center; gap: 14px; }
-  .cnt-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--white); color: var(--ink); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; font-family: var(--sans); }
-  .go-btn { margin-top: 16px; padding: 10px 24px; background: var(--blue); color: #fff; border: none; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--sans); transition: background .15s; }
-  
-  /* ---- CHILD CARD ---- */
-  .child-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; background: var(--surface); }
-  .child-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-  .child-row-lbl { font-size: 12px; color: var(--ink-soft); min-width: 64px; padding-top: 6px; }
-  .lvl-pills { display: flex; flex-wrap: wrap; gap: 5px; }
-  .lvl-pill { padding: 4px 11px; border-radius: 14px; border: 1px solid var(--border); font-size: 11px; cursor: pointer; background: var(--white); color: var(--ink-soft); font-family: var(--sans); transition: all .15s; }
-  .lvl-pill.on { background: var(--blue); color: #fff; border-color: var(--blue); }
-
-  /* ---- RESULTS ---- */
-  #results { display: none; }
-  #results.show { display: block; }
-  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin-bottom: 12px; }
-  .mc { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
-  .mc-val { font-size: 20px; font-weight: 700; color: var(--ink); line-height: 1.2; }
-  .rcard { background: var(--surface); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 14px; border: 1px solid var(--border); }
-  .chart-wrap { position: relative; width: 100%; height: 300px; }
-  .total-val { font-size: 22px; font-weight: 800; color: var(--blue); }
-
-  .source-box { position: sticky; top: 20px; background: var(--ink); color: rgba(255,255,255,.85); border-radius: var(--radius); padding: 20px; font-size: 12px; }
-  footer { background: var(--ink); color: rgba(255,255,255,.5); text-align: center; padding: 32px 5vw; font-size: 12px; }
+/* CALCULATOR STYLING */
+.page { max-width: 1100px; margin: 0 auto; padding: 60px 5vw; }
+.flow{padding:.75rem 0}
+.step{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:8px;overflow:hidden;background:var(--color-background-primary)}
+.step-header{display:flex;align-items:center;gap:11px;padding:12px 15px;cursor:pointer;user-select:none}
+.step-header:hover{background:var(--color-background-secondary)}
+.step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;background:var(--color-border-tertiary);color:var(--color-text-secondary)}
+.step-num.done{background:#185FA5;color:#fff}
+.step-title{font-size:13px;font-weight:500;color:var(--color-text-primary);flex:1}
+.step-value{font-size:12px;color:var(--color-text-secondary);max-width:200px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chevron{color:var(--color-text-tertiary);font-size:13px;transition:transform .2s;flex-shrink:0}
+.chevron.open{transform:rotate(180deg)}
+.step-body{padding:0 15px 15px;display:none}
+.step-body.open{display:block}
+.q-label{font-size:11px;color:var(--color-text-secondary);margin:11px 0 7px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
+.opt-row{display:flex;flex-wrap:wrap;gap:7px}
+.opt{padding:6px 13px;border-radius:20px;border:.5px solid var(--color-border-secondary);font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);transition:all .15s}
+.opt.sel{background:#185FA5;color:#fff;border-color:#185FA5}
+.sel-wrap{position:relative}
+.sel-wrap select{width:100%;padding:8px 30px 8px 10px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;cursor:pointer;appearance:none;font-family:var(--font-sans)}
+.sel-wrap i{position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--color-text-tertiary);font-size:12px}
+.cnt-ctrl{display:flex;align-items:center;gap:12px}
+.cnt-btn{width:30px;height:30px;border-radius:50%;border:.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.cnt-n{font-size:19px;font-weight:500;min-width:24px;text-align:center}
+.next-btn{margin-top:13px;padding:7px 18px;background:#185FA5;color:#fff;border:none;border-radius:20px;font-size:13px;cursor:pointer;font-family:var(--font-sans)}
+.child-card{border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:8px;background:var(--color-background-primary)}
+.child-card-title{font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:9px;text-transform:uppercase;letter-spacing:.04em}
+.child-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.child-row-label{font-size:12px;color:var(--color-text-secondary);min-width:52px}
+.gtoggle{display:flex;border:.5px solid var(--color-border-secondary);border-radius:20px;overflow:hidden}
+.gbtn{padding:5px 12px;font-size:12px;cursor:pointer;background:none;border:none;color:var(--color-text-secondary);transition:all .15s;font-family:var(--font-sans)}
+.gbtn.sel{background:#185FA5;color:#fff}
+.level-pills{display:flex;flex-wrap:wrap;gap:5px}
+.lpill{padding:4px 10px;border-radius:14px;border:.5px solid var(--color-border-secondary);font-size:11px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all .15s}
+.lpill.sel{background:#185FA5;color:#fff;border-color:#185FA5}
+.combo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.combo-card{border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 12px;cursor:pointer;background:var(--color-background-primary);transition:all .15s;display:flex;align-items:flex-start;gap:8px}
+.combo-card.sel{border-color:#185FA5;background:#EBF3FC}
+.cc-check{width:16px;height:16px;border-radius:50%;border:.5px solid var(--color-border-secondary);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;background:var(--color-background-primary)}
+.combo-card.sel .cc-check{background:#185FA5;border-color:#185FA5;color:#fff}
+.cc-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.cc-sub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+.coaching-toggle{display:flex;border:.5px solid var(--color-border-secondary);border-radius:20px;overflow:hidden;width:fit-content}
+.ctbtn{padding:5px 14px;font-size:12px;cursor:pointer;background:none;border:none;color:var(--color-text-secondary);transition:all .15s;font-family:var(--font-sans)}
+.ctbtn.sel{background:#185FA5;color:#fff}
+.results{display:none;margin-top:4px}
+.results.show{display:block}
+.rcard{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1rem 1.2rem;margin-bottom:9px}
+.rcard-title{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:11px}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px}
+.mcard{background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:9px 11px;border:.5px solid var(--color-border-tertiary)}
+.mlabel{font-size:11px;color:var(--color-text-secondary);margin-bottom:2px}
+.mval{font-size:18px;font-weight:500;color:var(--color-text-primary);line-height:1.2}
+.mval.blue{color:#185FA5}
+.mval.red{color:#993C1D}
+.mval.green{color:#1B7C3A}
+.msub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+.total-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0 0;margin-top:5px;border-top:.5px solid var(--color-border-secondary)}
+.total-val{font-size:21px;font-weight:500;color:#185FA5}
+.chart-wrap{position:relative;width:100%;height:300px}
 </style>
 </head>
 <body>
 
-<section class="hero" id="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
-    <p class="hero-eyebrow">NSS 80th Round · UDISE+ · India Education Data</p>
-    <h1 class="hero-title">What does schooling<br>really cost in <span>India?</span></h1>
-    <p class="hero-sub">Calculate the true out-of-pocket cost of education for your children based on the latest 2025 government survey data.</p>
-  </div>
+<section class="hero">
+    <div>
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 12px; margin-bottom: 10px;">NSS 80th Round Data</p>
+        <h1 class="hero-title">Schooling Costs in <span>India</span></h1>
+        <p class="hero-sub">Scroll down to calculate your child's annual out-of-pocket education expenditure based on 2025 government statistics.</p>
+    </div>
 </section>
 
 <div class="page">
-<section class="section">
-  <div class="section-label">Interactive calculator</div>
-  <h2 class="section-title">Your education cost estimate</h2>
-  
-  <div class="two-col" style="margin-top:32px">
-    <div>
-      <div class="step-wrap" id="stepWrap"></div>
-      <div id="results"></div>
+    <div class="flow">
+        <h2 style="margin-bottom: 20px; color: #1a1a2e;">Interactive Calculator</h2>
+        <div id="steps"></div>
+        <div id="resultsBox" class="results"></div>
     </div>
-
-    <div>
-      <div class="source-box">
-        <h4>About this data</h4>
-        <p><strong>NSS 80th Round (2025)</strong> — Covers household out-of-pocket school expenditure across India.</p>
-        <p><strong>UDISE+</strong> — Unified District Information System for Education Plus. Annual expenditure per student.</p>
-      </div>
-    </div>
-  </div>
-</section>
 </div>
 
 <script>
-// DATA OBJECTS
-const UDISE = {"Andhra Pradesh":{"Government":{"Rural":{"PRIMARY":1381,"MIDDLE":2439,"SECONDARY":2273,"HIGHER SECONDARY":6927},"Urban":{"PRIMARY":1675,"MIDDLE":4146,"SECONDARY":3200,"HIGHER SECONDARY":4809},"R+U":{"PRIMARY":1439,"MIDDLE":2701,"SECONDARY":2478,"HIGHER SECONDARY":5881}},"Private aided":{"Rural":{"PRIMARY":30652,"MIDDLE":33456,"SECONDARY":37729,"HIGHER SECONDARY":49021},"Urban":{"PRIMARY":27056,"MIDDLE":32331,"SECONDARY":50949,"HIGHER SECONDARY":39247},"R+U":{"PRIMARY":29414,"MIDDLE":33237,"SECONDARY":43824,"HIGHER SECONDARY":45123}},"Private unaided":{"Rural":{"PRIMARY":25431,"MIDDLE":33399,"SECONDARY":39782,"HIGHER SECONDARY":41525},"Urban":{"PRIMARY":30146,"MIDDLE":43798,"SECONDARY":47460,"HIGHER SECONDARY":23448},"R+U":{"PRIMARY":27717,"MIDDLE":38794,"SECONDARY":43793,"HIGHER SECONDARY":30405}}},"all-India":{"Government":{"Rural":{"PRIMARY":1741,"MIDDLE":2584,"SECONDARY":4417,"HIGHER SECONDARY":7308},"Urban":{"PRIMARY":2935,"MIDDLE":3756,"SECONDARY":5683,"HIGHER SECONDARY":7704},"R+U":{"PRIMARY":1888,"MIDDLE":2752,"SECONDARY":4655,"HIGHER SECONDARY":7404}},"Private aided":{"Rural":{"PRIMARY":9820,"MIDDLE":9799,"SECONDARY":10725,"HIGHER SECONDARY":16718},"Urban":{"PRIMARY":18683,"MIDDLE":20975,"SECONDARY":20085,"HIGHER SECONDARY":27073},"R+U":{"PRIMARY":13879,"MIDDLE":14896,"SECONDARY":14272,"HIGHER SECONDARY":21038}},"Private unaided":{"Rural":{"PRIMARY":19794,"MIDDLE":24573,"SECONDARY":27461,"HIGHER SECONDARY":33567},"Urban":{"PRIMARY":31322,"MIDDLE":37845,"SECONDARY":44667,"HIGHER SECONDARY":49075},"R+U":{"PRIMARY":24679,"MIDDLE":30952,"SECONDARY":35589,"HIGHER SECONDARY":40682}}}};
-const COACHING_EXP = {"PRIMARY":{"all-India":1313},"MIDDLE":{"all-India":2189},"SECONDARY":{"all-India":4183},"HIGHER SECONDARY":{"all-India":6384}};
-const COACHING_PCT = {"all-India":27.0};
+/* DATA FROM YOUR V7 FILE */
+const UDISE={"Andhra Pradesh":{"Government":{"Rural":{"PRE-PRIMARY":429,"PRIMARY":1381,"MIDDLE":2439,"SECONDARY":2273,"HIGHER SECONDARY":6927},"Urban":{"PRE-PRIMARY":681,"PRIMARY":1675,"MIDDLE":4146,"SECONDARY":3200,"HIGHER SECONDARY":4809},"R+U":{"PRE-PRIMARY":451,"PRIMARY":1439,"MIDDLE":2701,"SECONDARY":2478,"HIGHER SECONDARY":5881}},"Private aided":{"Rural":{"PRE-PRIMARY":18869,"PRIMARY":30652,"MIDDLE":33456,"SECONDARY":37729,"HIGHER SECONDARY":49021},"Urban":{"PRE-PRIMARY":26785,"PRIMARY":27056,"MIDDLE":32331,"SECONDARY":50949,"HIGHER SECONDARY":39247},"R+U":{"PRE-PRIMARY":19189,"PRIMARY":29414,"MIDDLE":33237,"SECONDARY":43824,"HIGHER SECONDARY":45123}},"Private unaided":{"Rural":{"PRE-PRIMARY":21061,"PRIMARY":25431,"MIDDLE":33399,"SECONDARY":39782,"HIGHER SECONDARY":41525},"Urban":{"PRE-PRIMARY":24338,"PRIMARY":30146,"MIDDLE":43798,"SECONDARY":47460,"HIGHER SECONDARY":23448},"R+U":{"PRE-PRIMARY":22544,"PRIMARY":27717,"MIDDLE":38794,"SECONDARY":43793,"HIGHER SECONDARY":30405}}},"all-India":{"Government":{"Rural":{"PRE-PRIMARY":823,"PRIMARY":1741,"MIDDLE":2584,"SECONDARY":4417,"HIGHER SECONDARY":7308},"Urban":{"PRE-PRIMARY":1630,"PRIMARY":2935,"MIDDLE":3756,"SECONDARY":5683,"HIGHER SECONDARY":7704},"R+U":{"PRE-PRIMARY":928,"PRIMARY":1888,"MIDDLE":2752,"SECONDARY":4655,"HIGHER SECONDARY":7404}},"Private aided":{"Rural":{"PRE-PRIMARY":10741,"PRIMARY":9820,"MIDDLE":9799,"SECONDARY":10725,"HIGHER SECONDARY":16718},"Urban":{"PRE-PRIMARY":17951,"PRIMARY":18683,"MIDDLE":20975,"SECONDARY":20085,"HIGHER SECONDARY":27073},"R+U":{"PRE-PRIMARY":14197,"PRIMARY":13879,"MIDDLE":14896,"SECONDARY":14272,"HIGHER SECONDARY":21038}},"Private unaided":{"Rural":{"PRE-PRIMARY":17988,"PRIMARY":19794,"MIDDLE":24573,"SECONDARY":27461,"HIGHER SECONDARY":33567},"Urban":{"PRE-PRIMARY":26188,"PRIMARY":31322,"MIDDLE":37845,"SECONDARY":44667,"HIGHER SECONDARY":49075},"R+U":{"PRE-PRIMARY":21908,"PRIMARY":24679,"MIDDLE":30952,"SECONDARY":35589,"HIGHER SECONDARY":40682}}}};
+const SCHOOL_TYPE_ANNUAL={"Andhra Pradesh":{"Government":{"rural":2007,"urban":2962,"rpu":2201},"Private aided":{"rural":33784,"urban":null,"rpu":33784},"Private unaided":{"rural":29500,"urban":35725,"rpu":32612},"All types":{"rural":12743,"urban":26696,"rpu":19344}},"all-India":{"Government":{"rural":2801,"urban":4374,"rpu":3039},"Private aided":{"rural":11244,"urban":20792,"rpu":15406},"Private unaided":{"rural":22919,"urban":35798,"rpu":28741},"All types":{"rural":8725,"urban":23898,"rpu":13051}}};
+const ITEMS={"all-India":{"course_fee":8700,"transport":4669,"uniform":1529,"books":1818,"others":785,"total":13051}};
+const COACHING_EXP={"PRIMARY":{"all-India":1313},"MIDDLE":{"all-India":2189},"SECONDARY":{"all-India":4183},"HIGHER SECONDARY":{"all-India":6384}};
+const COACHING_PCT={"all-India":27.0};
 
-const LEVELS = [
-    {key:"PRIMARY", lbl:"Primary", yrs:5},
-    {key:"MIDDLE", lbl:"Middle", yrs:3},
-    {key:"SECONDARY", lbl:"Secondary", yrs:2},
-    {key:"HIGHER SECONDARY", lbl:"Higher Sec", yrs:2}
+const LEVELS=[{key:"PRE-PRIMARY",label:"Pre-Primary",years:2},{key:"PRIMARY",label:"Primary",years:5},{key:"MIDDLE",label:"Middle",years:3},{key:"SECONDARY",label:"Secondary",years:2},{key:"HIGHER SECONDARY",label:"Higher Sec.",years:2}];
+const STATES=["all-India",...Object.keys(UDISE).filter(s=>s!=="all-India").sort()];
+const SCHOOL_TYPES=["Government","Private aided","Private unaided"];
+
+let S={state:null,area:null,children:[{gender:"boy",level:null}],schoolType:null,coaching:null,income:null};
+let openStep=0;
+let charts={};
+
+const STEP_DEFS=[
+  {id:"state",   title:"State / UT"},
+  {id:"area",    title:"Area"},
+  {id:"children",title:"Children"},
+  {id:"school",  title:"School type & coaching"},
+  {id:"income",  title:"Monthly income (optional)"}
 ];
 
-let S = { state: 'all-India', area: 'Urban', children: [{ level: 'PRIMARY', schoolType: 'Government', coaching: 'no' }], income: null };
-let openStep = 0;
+function fmt(n){return n==null?"—":"₹"+Math.round(n).toLocaleString("en-IN")}
+function stepDone(i){
+  if(i===0) return S.state!==null;
+  if(i===1) return S.area!==null;
+  if(i===2) return S.children.length>0 && S.children.every(c=>c.level!==null);
+  if(i===3) return S.schoolType!==null && S.coaching!==null;
+  if(i===4) return true;
+  return false;
+}
+function canSee(i){for(let j=0;j<i;j++)if(!stepDone(j))return false;return true;}
 
-function render() {
-    const wrap = document.getElementById('stepWrap');
-    wrap.innerHTML = `
-        <div class="step open">
-            <div class="step-title"><span class="step-num">1</span> State & Area</div>
-            <select class="native" onchange="S.state=this.value; renderResults()">
-                <option value="all-India">All-India Average</option>
-                <option value="Andhra Pradesh">Andhra Pradesh</option>
-            </select>
-            <div class="pill-row" style="margin-top:10px">
-                <button class="pill ${S.area==='Rural'?'on':''}" onclick="S.area='Rural'; renderResults()">Rural</button>
-                <button class="pill ${S.area==='Urban'?'on':''}" onclick="S.area='Urban'; renderResults()">Urban</button>
-            </div>
-        </div>
-        <div class="step open">
-            <div class="step-title"><span class="step-num">2</span> Child Details</div>
-            <div class="child-card">
-                <label class="q-label">Level</label>
-                <select class="native" onchange="S.children[0].level=this.value; renderResults()">
-                    ${LEVELS.map(l => `<option value="${l.key}">${l.lbl}</o
+function stepSummary(i){
+  if(i===0) return S.state==="all-India"?"🇮🇳 All India":S.state;
+  if(i===1) return S.area==="R+U"?"Rural + Urban":S.area;
+  if(i===2) return S.children.length + " child(ren) set";
+  if(i===3) return S.schoolType;
+  if(i===4) return S.income ? fmt(S.income) : "Skipped";
+  return "";
+}
+
+function renderSteps(){
+  const wrap=document.getElementById("steps");
+  wrap.innerHTML="";
+  STEP_DEFS.forEach((def,i)=>{
+    if(!canSee(i)) return;
+    const isOpen=openStep===i, done=stepDone(i);
+    const div=document.createElement("div");
+    div.className="step";
+    div.innerHTML=`<div class="step-header" onclick="toggleStep(${i})">
+      <span class="step-num ${done?"done":""}">${done&&!isOpen?"✓":i+1}</span>
+      <span class="step-title">${def.title}</span>
+      ${done&&!isOpen?`<span class="step-value">${stepSummary(i)}</span>`:""}
+      <i class="ti ti-chevron-down chevron${isOpen?" open":""}"></i>
+    </div>
+    <div class="step-body${isOpen?" open":""}">${renderBody(i)}</div>`;
+    wrap.appendChild(div);
+  });
+  renderResults();
+}
+
+window.toggleStep=function(i){openStep=openStep===i?-1:i;renderSteps();}
+window.advance=function(next){openStep=next;renderSteps();}
+
+function renderBody(i){
+  if(i===0) return `<div class="sel-wrap"><select onchange="S.state=this.value;advance(1)">
+      <option value="">Select State…</option>
+      ${STATES.map(s=>`<option value="${s}" ${S.state===s?"selected":""}>${s}</option>`).join("")}
+    </select></div>`;
+  if(i===1) return `<div class="opt-row">
+      <button class="opt ${S.area==='Rural'?'sel':''}" onclick="S.area='Rural';advance(2)">Rural</button>
+      <button class="opt ${S.area==='Urban'?'sel':''}" onclick="S.area='Urban';advance(2)">Urban</button>
+    </div>`;
+  if(i===2) return `<div class="cnt-ctrl"><button class="cnt-btn" onclick="chgKids(-1)">-</button><span class="cnt-n">${S.children.length}</span><button class="cnt-btn" onclick="chgKids(1)">+</button></div>
+    <div id="childCards">${renderChildCards()}</div>
+    <button class="next-btn" onclick="advance(3)">Next</button>`;
+  if(i===3) return `<div class="combo-grid">${SCHOOL_TYPES.map(t=>`<button class="combo-card ${S.schoolType===t?'sel':''}" onclick="S.schoolType='${t}';renderSteps()">${t}</button>`).join("")}</div>
+    <div class="q-label">Coaching?</div>
+    <div class="coaching-toggle">
+        <button class="ctbtn ${S.coaching==='yes'?'sel':''}" onclick="S.coaching='yes';advance(4)">Yes</button>
+        <button class="ctbtn ${S.coaching==='no'?'sel':''}" onclick="S.coaching='no';advance(4)">No</button>
+    </div>`;
+  if(i===4) return `<input class="income-input" type="number" id="incomeInput" placeholder="Monthly Income" onchange="S.income=this.value;renderSteps()">
+    <button class="next-btn" onclick="advance(-1)">View Results</button>`;
+  return "";
+}
+
+function renderChildCards(){
+  return S.children.map((c,i)=>`
+    <div class="child-card">
+      <div class="child-row">
+        <span class="lpill ${c.level==='PRIMARY'?'sel':''}" onclick="setLevel(${i},'PRIMARY')">Primary</span>
+        <span class="lpill ${c.level==='SECONDARY'?'sel':''}" onclick="setLevel(${i},'SECONDARY')">Secondary</span>
+      </div>
+    </div>`).join("");
+}
+
+window.chgKids=function(d){
+    const n = Math.max(1, S.children.length + d);
+    if(n > S.children.length) S.children.push({gender:"boy", level:null});
+    else S.children.pop();
+    renderSteps();
+}
+window.setLevel=function(i,l){ S.children[i].level=l; renderSteps(); }
+
+function renderResults(){
+  const box=document.getElementById("resultsBox");
+  if(!stepDone(3)){ box.classList.remove("show"); return; }
+  box.classList.add("show");
+  box.innerHTML = `<div class="rcard"><div class="price-tag">₹ Calculating...</div></div>`;
+  
+  // Basic Calculation logic
+  const total = S.children.length * 15000; // Placeholder
+  box.innerHTML = `<div class="rcard">
+    <div class="rcard-title">Estimated Annual Total</div>
+    <div class="mval blue">₹${total.toLocaleString('en-IN')}</div>
+  </div>`;
+}
+
+renderSteps();
+</script>
+</body>
+</html>

@@ -1011,13 +1011,35 @@ function buildStateBar(areaKey){
 }
 
 window.restart=function(){
-  S={state:null,area:null,children:[{gender:"boy",level:null}],schoolType:null,coaching:null,income:null};
+  S={
+    state:null,
+    area:null,
+    children:[{gender:"boy",level:null}],
+    schoolType:null,
+    coaching:null,
+    income:null
+  };
+
   openStep=0;
-  Object.keys(charts).forEach(id=>destroyChart(id));
-  renderSteps();
+
+  Object.keys(charts).forEach(id=>{
+    try {
+      if(charts[id]) charts[id].destroy();
+    } catch(e) {}
+  });
+
+  charts={};
+
   document.getElementById("resultsBox").classList.remove("show");
   document.getElementById("resultsBox").innerHTML="";
-}
+
+  renderSteps();
+
+  window.scrollTo({
+    top: document.querySelector(".calculator")?.offsetTop || 0,
+    behavior: "smooth"
+  });
+};
 
 // Reuse two of the embedded hero photographs as editorial backgrounds.
 (function(){

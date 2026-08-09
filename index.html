@@ -846,13 +846,17 @@ function renderResults(){
   </div>`;
 
   // 3. ITEM BREAKDOWN
+  // Percentages are shares of the five reported cost heads only; the independently
+  // reported “All items” figure is shown separately and is not used as the denominator.
+  const itemFiveTotal=ITEM_KEYS.reduce((sum,k)=>sum+(itm[k]||0),0);
   const itemMaxVal=Math.max(...ITEM_KEYS.map(k=>itm[k]||0),1);
+  const itemAreaLabel=S.area==="R+U"?"R+U":S.area;
   const itemsHtml=itm.total?`<div class="rcard">
-    <div class="rcard-title">What the annual spend goes on · ${stateName} (NSS 2025 · all school types)</div>
-    <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px">Average annual household spend per student by cost head. Thicker bar = ${stateName}, thinner = All India.</p>
+    <div class="rcard-title">Where does education expenditure go in ${stateName} · ${itemAreaLabel}?</div>
+    <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px">The bar chart shows the breakdown of education expenditure by item for ${stateName} · ${itemAreaLabel}. Course/tuition fees, at <strong>${fmt(itm.course_fee)} a year</strong>, account for <strong>${itemFiveTotal?((itm.course_fee||0)/itemFiveTotal*100).toFixed(1):"0.0"}%</strong> of the five reported expenditure items. The five shares add up to 100%, subject to rounding. The reported all-items expenditure is shown separately because NSS reports it independently; it is not the sum of these five cost-head averages.</p>
     ${ITEM_KEYS.map((k,ki)=>{
       const sv=itm[k]||0,iv=itmIndia[k]||0;
-      const sp=itm.total?Math.round(sv/itm.total*100):0;
+      const sp=itemFiveTotal?Math.round(sv/itemFiveTotal*100):0;
       return `<div style="margin-bottom:10px">
         <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
           <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:${ITEM_COLORS[ki]};flex-shrink:0;display:inline-block"></span>${ITEM_LABELS[k]}</span>
@@ -871,7 +875,7 @@ function renderResults(){
     </div>
     <p style="font-size:11px;font-weight:500;color:var(--color-text-secondary);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.04em">% split</p>
     <div class="share-track" style="height:22px">
-      ${ITEM_KEYS.map((k,ki)=>{const p=itm.total?Math.round((itm[k]||0)/itm.total*100):0;return p>3?`<div class="share-seg" style="width:${p}%;background:${ITEM_COLORS[ki]}"><span class="share-lbl" style="font-size:9px">${p}%</span></div>`:""}).join("")}
+      ${ITEM_KEYS.map((k,ki)=>{const p=itemFiveTotal?Math.round((itm[k]||0)/itemFiveTotal*100):0;return p>3?`<div class="share-seg" style="width:${p}%;background:${ITEM_COLORS[ki]}"><span class="share-lbl" style="font-size:9px">${p}%</span></div>`:""}).join("")}
     </div>
     <div class="share-legend" style="margin-top:6px">
       ${ITEM_KEYS.map((k,ki)=>`<span><span class="share-leg-dot" style="background:${ITEM_COLORS[ki]}"></span>${ITEM_LABELS[k].split("/")[0].trim()}</span>`).join("")}
@@ -920,7 +924,7 @@ function renderResults(){
 
   box.innerHTML=summaryHtml+perChildHtml+itemsHtml+multHtml+stateBarHtml+
   `<p class="note">Sources: UDISE+ (school cost by type/level/state). NSS 80th Round CMS: Education, 2025 — Table 8.2 (annual cost by school type & state), Table 10 (annual spend by item), Table 11 (coaching %), Table 12.1 (coaching expenditure by level). Pre-Primary 2 yrs · Primary 5 yrs · Middle 3 yrs · Secondary 2 yrs · Higher Secondary 2 yrs.</p>
-  <button class="restart-btn" onclick="restart()">↺ Start over</button>`;
+  <button class="restart-btn" id="restartBtn" type="button">↺ Start over</button>`;
 
   setTimeout(()=>buildStateBar(areaKey),80);
 }
@@ -1010,36 +1014,25 @@ function buildStateBar(areaKey){
   });
 }
 
-window.restart=function(){
-  S={
-    state:null,
-    area:null,
-    children:[{gender:"boy",level:null}],
-    schoolType:null,
-    coaching:null,
-    income:null
-  };
-
+window.restartCalculator=function(){
+  S={state:null,area:null,children:[{gender:"boy",level:null}],schoolType:null,coaching:null,income:null};
   openStep=0;
-
-  Object.keys(charts).forEach(id=>{
-    try {
-      if(charts[id]) charts[id].destroy();
-    } catch(e) {}
-  });
-
-  charts={};
-
-  document.getElementById("resultsBox").classList.remove("show");
-  document.getElementById("resultsBox").innerHTML="";
-
+  Object.keys(charts).forEach(id=>destroyChart(id));
+  const box=document.getElementById("resultsBox");
+  if(box){ box.classList.remove("show"); box.innerHTML=""; }
   renderSteps();
-
-  window.scrollTo({
-    top: document.querySelector(".calculator")?.offsetTop || 0,
-    behavior: "smooth"
-  });
+  window.scrollTo({top:0,behavior:"smooth"});
 };
+
+// The results section is rebuilt dynamically, so bind Start over through
+// event delegation rather than relying on an inline handler.
+document.addEventListener("click",function(e){
+  const btn=e.target.closest("#restartBtn");
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  window.restartCalculator();
+});
 
 // Reuse two of the embedded hero photographs as editorial backgrounds.
 (function(){

@@ -879,7 +879,7 @@ function renderResults(){
     const childLabel=`Child ${childIndex+1}`;
     return `<div class="result-pane${active?' active':''}" data-item-pane="${childIndex}">
       <div class="rcard" style="margin-bottom:0">
-        <div class="rcard-title">Where does education expenditure go — ${childLabel} (${genderLabel}) · ${stateName} · ${itemAreaLabel}</div>
+        <div class="rcard-title"> An item wise breakdown of expenditure on various items for education (This data is not categorised by school type, so values will not add up to expenditure classified above  — ${childLabel} (${genderLabel}) · ${stateName} · ${itemAreaLabel}</div>
         <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px">The bar chart shows the breakdown of education expenditure by item for ${genderLabel.toLowerCase()} students in ${stateName} · ${itemAreaLabel}. Each percentage shows the item's share of the five reported expenditure heads combined. The five shares add up to 100%, subject to rounding. The reported all-items expenditure is shown separately because NSS reports it independently; it is not the sum of these five cost-head averages.</p>
         ${ITEM_KEYS.map((k,ki)=>{
           const sv=itm[k]||0,iv=itmIndia?.[k]||0;
